@@ -1,0 +1,90 @@
+=================
+django-sql-server
+=================
+
+A Django_ MS SQL Server external DB backend that uses ODBC by employing
+the pyodbc_ library and supports SQL Server 2000 and 2005.
+
+.. _Django: http://djangoproject.com/
+.. _pyodbc: http://pyodbc.sourceforge.net
+
+Features
+========
+
+* Supports LIMIT+OFFSET and offset w/o LIMIT emulation both under SS2000 and
+  SS2005.
+* Transparently supports Django's TextField both under SS2000 and SS2005.
+* Passes most of the tests of the Django test suite.
+* Compatible with SQL Server and SQL Server Native Client from Microsoft
+  (Windows) and FreeTDS ODBC drivers (Linux).
+
+Dependencies
+============
+
+* Django from SVN, revision 8297 or newer (1.0 beta1 is r8362.)
+* pyodbc 2.0.58 or newer
+
+Installation
+============
+
+ 1. Install pyodbc.
+
+ 2. Add the directory where you have copied the project files to your Python
+    path. So, for example, if you have the following directory structure::
+
+        /home/user/src/django-sql-server
+            |
+            +- docs (the directory that contains this file)
+            |
+            +- sql_server
+                  |
+                  +- pyodbc
+
+    you should add /home/user/src/django-sql-server to you Python path. One
+    way to do this is setting the PYTHONPATH environment variable::
+
+       $ export PYTHONPATH=/home/user/src/django-sql-server
+
+3. Now you can point the `DATABASE_ENGINE` setting in the settings file used by
+   your Django application or project to the `'sql_server.pyodbc'` module path::
+
+       DATABASE_ENGINE='sql_server.pyodbc'
+
+Configuration
+=============
+
+The following settting control the behavior of the backend:
+
+DATABASE_NAME               - Database name. Required.
+DATABASE_HOST               - SQL Server host or instance name (in
+                              "server\instance" format).
+DATABASE_PORT               - SQL Server instance port.
+DATABASE_USER               - Database user name. If not given then
+                              Integrated Security will be used.
+DATABASE_PASSWORD           - Database user password.
+DATABASE_ODBC_DSN           - A named DSN can be used instead of DATABASE_HOST.
+DATABASE_ODBC_DRIVER        - ODBC Driver (e.g. "SQL Server", "FreeTDS"), note
+                              than it shouldn't be surrounded by "{" and "}".
+DATABASE_ODBC_EXTRA_PARAMS  - Additional parameters for the ODBC connection
+                              string. Format is "param=value;param=value".
+DATABASE_OPTIONS            - Options like autocommit and the settings used by
+                              manage.py dbshell can be set here. It should be
+                              a dictionary.
+
+Thanks
+======
+
+ * Filip Wasilewski, for proving this was possible and profusely documenting
+   the code with links to relevant vendor technical articles.
+
+ * mamcxi (http://www.elmalabaista.com), for the first implementation using
+   pymssql.
+
+ * Wei guangjing, for code for FreeTDS compatibility and for clean
+   creation/deletion of Django test suite database.
+
+ * Adam Vandenber (from the django-mssql project), for code to distinguish
+   different Query classes when sub-classing them.
+
+ * All the Django core developer, especially Malcolm Tredinnick, for being an
+   example of technical excelence and building such an impressive community.
