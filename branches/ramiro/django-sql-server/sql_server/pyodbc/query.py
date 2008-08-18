@@ -2,7 +2,6 @@
 Custom Query class for MS SQL Server.
 Derives from: django.db.models.sql.query.Query
 """
-import sys
 
 REV_ODIR = {
     'ASC': 'DESC',
@@ -170,7 +169,9 @@ def query_class(QueryClass, Database):
             from_, f_params = self.get_from_clause()
 
             where, w_params = self.where.as_sql(qn=self.quote_name_unless_alias)
-            params = list(self.extra_select_params)
+            params = []
+            for val in self.extra_select.itervalues():
+                params.extend(val[1])
 
             result = ['SELECT']
             if self.distinct:
