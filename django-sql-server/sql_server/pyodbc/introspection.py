@@ -176,10 +176,6 @@ AND t.name = %s"""
 
         return indexes
 
-    def table_name_converter(self, name):
-        "Table name comparison is case insensitive under MS SQL Server."
-        return name.upper()
-
     #def get_collations_list(self, cursor):
     #    """
     #    Returns list of available collations and theirs descriptions.
