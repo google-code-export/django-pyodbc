@@ -1,6 +1,4 @@
-#django-pyodbc development news.
-
-= News =
+django-pyodbc development news.
 
 == SVN revision 30 ==
 
