@@ -1,0 +1,17 @@
+#django-pyodbc development news.
+
+= News =
+
+== SVN revision 30 ==
+
+Updated code to be compatible with Django as of [http://code.djangoproject.com/changeset/8426 r8426].
+
+Also, works has been started to merge fixes and changes from a development branch to trunk, so try to be in good shape to accompany the imminent Django 1.0 release.
+
+== SVN revision 24 ==
+
+Updated code to be compatible with Django as of [http://code.djangoproject.com/changeset/8296 r8296] (see Django ticket [http://code.djangoproject.com/ticket/5461 #5461]).
+
+== SVN revision 21 ==
+
+Updated code to be compatible with Django as of [http://code.djangoproject.com/changeset/8131 r8131] (see Django ticket [http://code.djangoproject.com/ticket/7560 #7560]).
