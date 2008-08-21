@@ -3,13 +3,17 @@ MS SQL Server database backend for Django.
 
 Requires pyodbc 2.0.38 or higher (http://pyodbc.sourceforge.net/)
 """
-from django.db.backends import *
+from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDatabaseValidation
 from django.core.exceptions import ImproperlyConfigured
+from django.conf import settings
 from sql_server.pyodbc.client import DatabaseClient
 from sql_server.pyodbc.creation import DatabaseCreation
 from sql_server.pyodbc.introspection import DatabaseIntrospection
 from sql_server.pyodbc.operations import DatabaseOperations
 import os
+
+if not hasattr(settings, "DATABASE_COLLATION"):
+    settings.DATABASE_COLLATION = 'Latin1_General_CI_AS'
 
 try:
     import pyodbc as Database
@@ -30,6 +34,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
 
 class DatabaseWrapper(BaseDatabaseWrapper):
 
+    driver_needs_utf8 = None
     # Collations:       http://msdn2.microsoft.com/en-us/library/ms184391.aspx
     #                   http://msdn2.microsoft.com/en-us/library/ms179886.aspx
     # T-SQL LIKE:       http://msdn2.microsoft.com/en-us/library/ms179859.aspx
@@ -74,10 +79,11 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         self.validation = BaseDatabaseValidation()
 
         self.connection = None
-        self.driver_needs_utf8 = False
 
     def _cursor(self, settings):
+        new_conn = False
         if self.connection is None:
+            new_conn = True
             if not settings.DATABASE_NAME:
                 raise ImproperlyConfigured("You need to specify DATABASE_NAME in your Django settings file.")
 
@@ -113,27 +119,34 @@ class DatabaseWrapper(BaseDatabaseWrapper):
                 connstr.append(settings.DATABASE_ODBC_EXTRA_PARAMS)
 
             self.connection = Database.connect(';'.join(connstr), autocommit=self.options["autocommit"])
-            self.connection.cursor().execute("SET DATEFORMAT ymd")
 
-            # http://msdn.microsoft.com/en-us/library/ms131686.aspx
-            #if self.ops.sql_server_ver >= 2005:
-            #    if (connection is using the 'SQL Server Native Client') and
-            #        (MARS feature is enabled):
-            #        self.features.can_use_chunked_reads = True
-            #
-            #    # How to use the conn string to activate it: Add
-            #    # "MARS_Connection=yes" to DATABASE_ODBC_EXTRA_PARAMS
-
+        cursor = self.connection.cursor()
+        if new_conn:
+            cursor.execute("SET DATEFORMAT ymd")
             if self.ops.sql_server_ver < 2005:
                 self.creation.data_types['TextField'] = 'ntext'
-            if self.connection.getinfo(Database.SQL_DRIVER_NAME) != 'SQLSRV32.DLL':
+
+            if self.driver_needs_utf8 is None:
                 self.driver_needs_utf8 = True
-            # FreeTDS can't execute some sql like CREATE DATABASE ... etc. in
-            # Multi-statement, so need commit for avoid this
+                drv_name = self.connection.getinfo(Database.SQL_DRIVER_NAME).upper()
+                if drv_name == 'SQLSRV32.DLL':
+                    self.driver_needs_utf8 = False
+
+                # http://msdn.microsoft.com/en-us/library/ms131686.aspx
+                #if self.sqlserver_version >= 2005 and drv_name == 'SQLNCLI.DLL':
+                #    # TODO: How can we know when MARS is active?
+                #    # How to use the conn string to activate it: Add
+                #    # "MARS_Connection=yes" to DATABASE_ODBC_EXTRA_PARAMS
+                #    self.features.can_use_chunked_reads = True
+                #
+
+            # FreeTDS can't execute some sql like CREATE DATABASE etc. in
+            # Multi-statement, so we need to commit the above SQL sentences to
+            # avoid this
             if not self.connection.autocommit:
                 self.connection.commit()
 
-        return CursorWrapper(self.connection.cursor(), self.driver_needs_utf8)
+        return CursorWrapper(cursor, self.driver_needs_utf8)
 
 
 class CursorWrapper(object):
