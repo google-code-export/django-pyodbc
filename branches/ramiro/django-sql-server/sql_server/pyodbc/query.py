@@ -37,13 +37,10 @@ _classes = {}
 # Gets the base class for all Django queries.
 # Django's subquery items (InsertQuery, DeleteQuery, etc.) will then inherit
 # from this custom class.
-def query_class(QueryClass, Database):
+def query_class(QueryClass):
     """
     Returns a custom django.db.models.sql.query.Query subclass that is
     appropriate for MS SQL Server.
-
-    The 'Database' module (pyodbc) is passed in here so that all the setup
-    required to import it only needs to be done by the calling module.
     """
     global _classes
     try:
