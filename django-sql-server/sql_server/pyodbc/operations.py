@@ -101,7 +101,7 @@ class DatabaseOperations(BaseDatabaseOperations):
         See also BaseDatabaseFeatures.uses_custom_query_class, which regulates
         whether this method is called at all.
         """
-        return query.query_class(DefaultQueryClass, Database)
+        return query.query_class(DefaultQueryClass)
 
     def quote_name(self, name):
         """
