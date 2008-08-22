@@ -1,5 +1,9 @@
 django-pyodbc development news.
 
+== SVN revision 66 ==
+
+The backend module name has been changed in a backwards incompatible way, you will need to change your `DATABASE_ENGINE` setting from `'mssql'` to `'sql_server.pyodbc'`.
+
 == SVN revision 30 ==
 
 Updated code to be compatible with Django as of [http://code.djangoproject.com/changeset/8426 r8426].
