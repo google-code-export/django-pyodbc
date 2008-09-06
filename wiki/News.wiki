@@ -8,7 +8,7 @@ The backend module name has been changed in a backwards incompatible way, you wi
 
 Updated code to be compatible with Django as of [http://code.djangoproject.com/changeset/8426 r8426].
 
-Also, works has been started to merge fixes and changes from a development branch to trunk, so try to be in good shape to accompany the imminent Django 1.0 release.
+Also, works has been started to merge fixes and changes from a development branch to trunk, to be in good shape to accompany the imminent Django 1.0 release.
 
 == SVN revision 24 ==
 
