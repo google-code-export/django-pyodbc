@@ -34,8 +34,9 @@ class DatabaseFeatures(BaseDatabaseFeatures):
 
 
 class DatabaseWrapper(BaseDatabaseWrapper):
-
     driver_needs_utf8 = None
+    MARS_Connection = False
+
     # Collations:       http://msdn2.microsoft.com/en-us/library/ms184391.aspx
     #                   http://msdn2.microsoft.com/en-us/library/ms179886.aspx
     # T-SQL LIKE:       http://msdn2.microsoft.com/en-us/library/ms179859.aspx
@@ -48,7 +49,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         # to make it case (in)sensitive. It will simply fallback to the
         # database collation.
         'exact': '= %s',
-        'iexact': "= UPPER(%s) ",
+        'iexact': "= UPPER(%s)",
         'contains': "LIKE %s ESCAPE '\\' COLLATE " + settings.DATABASE_COLLATION,
         'icontains': "LIKE UPPER(%s) ESCAPE '\\' COLLATE "+ settings.DATABASE_COLLATION,
         'gt': '> %s',
@@ -71,6 +72,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
     def __init__(self, autocommit=False, **kwargs):
         super(DatabaseWrapper, self).__init__(autocommit=autocommit, **kwargs)
+
+        if kwargs.get('MARS_Connection', False):
+            self.MARS_Connection = True
 
         self.features = DatabaseFeatures()
         self.ops = DatabaseOperations()
@@ -117,6 +121,9 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
             connstr.append("Database=%s" % settings.DATABASE_NAME)
 
+            if self.MARS_Connection:
+                connstr.append("MARS_Connection=yes")
+
             if hasattr(settings, "DATABASE_ODBC_EXTRA_PARAMS"):
                 connstr.append(settings.DATABASE_ODBC_EXTRA_PARAMS)
 
@@ -131,16 +138,14 @@ class DatabaseWrapper(BaseDatabaseWrapper):
             if self.driver_needs_utf8 is None:
                 self.driver_needs_utf8 = True
                 drv_name = self.connection.getinfo(Database.SQL_DRIVER_NAME).upper()
-                if drv_name == 'SQLSRV32.DLL':
+                if drv_name in ('SQLSRV32.DLL','SQLNCLI.DLL'):
                     self.driver_needs_utf8 = False
 
                 # http://msdn.microsoft.com/en-us/library/ms131686.aspx
-                #if self.sqlserver_version >= 2005 and drv_name == 'SQLNCLI.DLL':
-                #    # TODO: How can we know when MARS is active?
-                #    # How to use the conn string to activate it: Add
-                #    # "MARS_Connection=yes" to DATABASE_ODBC_EXTRA_PARAMS
-                #    self.features.can_use_chunked_reads = True
-                #
+                if self.sqlserver_version >= 2005 and drv_name == 'SQLNCLI.DLL' and self.MARS_Connection:
+                    # How to to activate it: Add 'MARS_Connection': True
+                    # to the DATABASE_OPTIONS disctionary setting
+                    self.features.can_use_chunked_reads = True
 
             # FreeTDS can't execute some sql like CREATE DATABASE etc. in
             # Multi-statement, so we need to commit the above SQL sentences to
@@ -175,6 +180,8 @@ class CursorWrapper(object):
         for p in params:
             if isinstance(p, unicode):
                 if self.driver_needs_utf8:
+                    # FreeTDS (and other ODBC drivers?) doesn't support Unicode
+                    # yet, so we need to encode parameters in utf-8
                     fp.append(p.encode('utf-8'))
                 else:
                     fp.append(p)
@@ -210,11 +217,13 @@ class CursorWrapper(object):
 
     def format_results(self, rows):
         """
-        Decode data coming from the database if needed and convert rows to
-        tuples (pyodbc Rows are not sliceable).
+        Decode data coming from the database if neede and convert rows to tuples
+        (pyodbc Rows are not sliceable).
         """
         if not self.driver_needs_utf8:
             return tuple(rows)
+        # FreeTDS (and other ODBC drivers?) doesn't support Unicode
+        # yet, so we need to decode utf-8 data coming from the DB
         fr = []
         for row in rows:
             if isinstance(row, str):
@@ -226,7 +235,6 @@ class CursorWrapper(object):
     def fetchone(self):
         row = self.cursor.fetchone()
         if row is not None:
-            # Convert row to tuple (pyodbc Rows are not sliceable).
             return self.format_results(row)
         return row
 
