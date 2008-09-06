@@ -34,8 +34,6 @@ Installation
 
         /home/user/src/django-sql-server
             |
-            +- docs (the directory that contains this file)
-            |
             +- sql_server
                   |
                   +- pyodbc
