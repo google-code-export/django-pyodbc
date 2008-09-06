@@ -2,7 +2,6 @@ from django.db.backends import BaseDatabaseOperations
 from sql_server.pyodbc import query
 import datetime
 import time
-from django.db.backends import util
 
 class DatabaseOperations(BaseDatabaseOperations):
     def __init__(self):
