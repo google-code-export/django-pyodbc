@@ -1,6 +1,6 @@
-= Settings =
+== Settings ==
 
-== Standard Django settings ==
+=== Standard Django settings ===
 
 `DATABASE_NAME`
     String. Database name. Required.
@@ -19,19 +19,20 @@
     String. Database user password.
 
 `DATABASE_OPTIONS`
-    Dictionary. Current available keys are:
+    Dictionary. There are current two backend-specific available keys:
 
     `autocommit`
         Boolean. Indicates if pyodbc should direct the the ODBC driver to
         activate the autocommit feature. Default value is `False`.
 
     `MARS_Connection`
-        Boolean. Only relevant when running on Windows and with SQL Server 2005
-        or later through MS _SQL Server Native client_ driver. See
-        http://msdn.microsoft.com/en-us/library/ms131686.aspx.
-        Default value is `False`.
+        Boolean. Only relevant when running on Windows and with SQL Server 2005 
+        or later through MS _SQL Server Native client_ driver (i.e. setting 
+        `DATABASE_ODBC_DRIVER` to `"SQL Native Client"`). See 
+        http://msdn.microsoft.com/en-us/library/ms131686.aspx. Default value
+        is `False`.
 
-== `django-pyodbc`-specific settings ==
+=== `django-pyodbc`-specific settings ===
 
 `DATABASE_ODBC_DSN`
     String. A named DSN can be used instead of `DATABASE_HOST`.
@@ -46,4 +47,4 @@
 
 `DATABASE_COLLATION`
     String. Name of the collation to use when performing text field lookups
-    against the database. Default value is `Latin1_General_CI_AS`.
+    against the database. Default value is `"Latin1_General_CI_AS"`.
