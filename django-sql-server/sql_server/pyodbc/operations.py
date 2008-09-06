@@ -93,6 +93,11 @@ class DatabaseOperations(BaseDatabaseOperations):
         cursor.execute("SELECT CAST(IDENT_CURRENT(%s) as bigint)", [table_name])
         return cursor.fetchone()[0]
 
+    def lookup_cast(self, lookup_type):
+        if lookup_type in ('iexact', 'icontains', 'istartswith', 'iendswith'):
+            return "UPPER(%s)"
+        return "%s"
+
     def query_class(self, DefaultQueryClass):
         """
         Given the default Query class, returns a custom Query class
@@ -155,7 +160,7 @@ class DatabaseOperations(BaseDatabaseOperations):
             # DBCC CHEKIDENT(table, RESEED, n) behavior.
             seqs = []
             for seq in sequences:
-                cursor.execute("SELECT COUNT(*) FROM %s" % seq["table"])
+                cursor.execute("SELECT COUNT(*) FROM %s" % self.quote_name(seq["table"]))
                 rowcnt = cursor.fetchone()[0]
                 elem = {}
                 if rowcnt:
@@ -224,6 +229,13 @@ class DatabaseOperations(BaseDatabaseOperations):
         # http://msdn2.microsoft.com/en-us/library/ms179859.aspx
         return smart_unicode(x).replace('\\', '\\\\').replace('[', '[[]').replace('%', '[%]').replace('_', '[_]')
 
+    def prep_for_iexact_query(self, x):
+        """
+        Same as prep_for_like_query(), but called for "iexact" matches, which
+        need not necessarily be implemented using "LIKE" in the backend.
+        """
+        return x
+
     def value_to_db_datetime(self, value):
         """
         Transform a datetime value to an object compatible with what is expected
@@ -245,16 +257,6 @@ class DatabaseOperations(BaseDatabaseOperations):
         if isinstance(value, basestring):
             return datetime.datetime(*(time.strptime(value, '%H:%M:%S')[:6]))
         return datetime.datetime(1900, 1, 1, value.hour, value.minute, value.second)
-
-    def value_to_db_decimal(self, value, max_digits, decimal_places):
-        """
-        Transform a decimal.Decimal value to an object compatible with what is
-        expected by the backend driver for decimal (numeric) columns.
-        """
-        if value is None:
-            return None
-        return util.format_number(value, max_digits, decimal_places)
-        #return value
 
     def year_lookup_bounds(self, value):
         """

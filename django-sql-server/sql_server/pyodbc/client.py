@@ -26,16 +26,19 @@ class DatabaseClient(BaseDatabaseClient):
                 args += ["-d", db]
             if defaults_file:
                 args += ["-i", defaults_file]
-
-            import subprocess
-            try:
-                retcode = subprocess.call(args, shell=True)
-                if retcode:
-                    print >>sys.stderr, "error level:", retcode
-                    sys.exit(retcode)
-            except KeyboardInterrupt:
-                pass
-            except OSError, e:
-                print >> sys.stderr, "Execution failed:", e
         else:
-            raise NotImplementedError
+            dsn = settings.DATABASE_OPTIONS.get('dsn', settings.DATABASE_ODBC_DSN)
+            user = settings.DATABASE_OPTIONS.get('user', settings.DATABASE_USER)
+            password = settings.DATABASE_OPTIONS.get('passwd', settings.DATABASE_PASSWORD)
+            args = ['isql -v %s %s %s' %(dsn, user, password)]
+
+        import subprocess
+        try:
+            retcode = subprocess.call(args, shell=True)
+            if retcode:
+                print >>sys.stderr, "error level:", retcode
+                sys.exit(retcode)
+        except KeyboardInterrupt:
+            pass
+        except OSError, e:
+            print >>sys.stderr, "Execution failed:", e
