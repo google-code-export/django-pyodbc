@@ -1,27 +1,28 @@
 """
 MS SQL Server database backend for Django.
-
-Requires pyodbc 2.0.38 or higher (http://pyodbc.sourceforge.net/)
 """
+
+try:
+    import pyodbc as Database
+except ImportError, e:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("Error loading pyodbc module: %s" % e)
+
+version = tuple(map(int, Database.version.split('.')))
+if version < (2, 0, 38):
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("pyodbc 2.0.38 or newer is required; you have %s" % Database.version)
+
 from django.db.backends import BaseDatabaseWrapper, BaseDatabaseFeatures, BaseDatabaseValidation
-from django.core.exceptions import ImproperlyConfigured
 from django.conf import settings
+from sql_server.pyodbc.operations import DatabaseOperations
 from sql_server.pyodbc.client import DatabaseClient
 from sql_server.pyodbc.creation import DatabaseCreation
 from sql_server.pyodbc.introspection import DatabaseIntrospection
-from sql_server.pyodbc.operations import DatabaseOperations
 import os
 
 if not hasattr(settings, "DATABASE_COLLATION"):
     settings.DATABASE_COLLATION = 'Latin1_General_CI_AS'
-
-try:
-    import pyodbc as Database
-    version = tuple(map(int, Database.version.split('.')))
-    if version < (2, 0, 38):
-        raise ImportError("pyodbc 2.0.38 or newer is required; you have %s" % Database.version)
-except ImportError, e:
-    raise ImproperlyConfigured("Error loading pyodbc module: %s" % e)
 
 DatabaseError = Database.DatabaseError
 IntegrityError = Database.IntegrityError
@@ -47,23 +48,23 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         # to make it case (in)sensitive. It will simply fallback to the
         # database collation.
         'exact': '= %s',
-        'iexact': 'LIKE %s COLLATE Latin1_General_CI_AS',
-        'contains': "LIKE %s ESCAPE '\\' COLLATE Latin1_General_CS_AS",
-        'icontains': "LIKE %s ESCAPE '\\'COLLATE Latin1_General_CI_AS",
+        'iexact': "= UPPER(%s) ",
+        'contains': "LIKE %s ESCAPE '\\' COLLATE " + settings.DATABASE_COLLATION,
+        'icontains': "LIKE UPPER(%s) ESCAPE '\\' COLLATE "+ settings.DATABASE_COLLATION,
         'gt': '> %s',
         'gte': '>= %s',
         'lt': '< %s',
         'lte': '<= %s',
-        'startswith': "LIKE %s ESCAPE '\\' COLLATE Latin1_General_CS_AS",
-        'endswith': "LIKE %s ESCAPE '\\' COLLATE Latin1_General_CS_AS",
-        'istartswith': "LIKE %s ESCAPE '\\' COLLATE Latin1_General_CI_AS",
-        'iendswith': "LIKE %s ESCAPE '\\' COLLATE Latin1_General_CI_AS",
+        'startswith': "LIKE %s ESCAPE '\\' COLLATE " + settings.DATABASE_COLLATION,
+        'endswith': "LIKE %s ESCAPE '\\' COLLATE " + settings.DATABASE_COLLATION,
+        'istartswith': "LIKE UPPER(%s) ESCAPE '\\' COLLATE " + settings.DATABASE_COLLATION,
+        'iendswith': "LIKE UPPER(%s) ESCAPE '\\' COLLATE " + settings.DATABASE_COLLATION,
 
         # TODO: remove, keep native T-SQL LIKE wildcards support
         # or use a "compatibility layer" and replace '*' with '%'
         # and '.' with '_'
-        'regex': 'LIKE %s COLLATE Latin1_General_CS_AS',
-        'iregex': 'LIKE %s COLLATE Latin1_General_CI_AS',
+        'regex': 'LIKE %s COLLATE ' + settings.DATABASE_COLLATION,
+        'iregex': 'LIKE %s COLLATE ' + settings.DATABASE_COLLATION,
 
         # TODO: freetext, full-text contains...
     }
@@ -85,6 +86,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         if self.connection is None:
             new_conn = True
             if not settings.DATABASE_NAME:
+                from django.core.exceptions import ImproperlyConfigured
                 raise ImproperlyConfigured("You need to specify DATABASE_NAME in your Django settings file.")
 
             connstr = []
@@ -159,6 +161,10 @@ class CursorWrapper(object):
         self.driver_needs_utf8 = driver_needs_utf8
 
     def format_sql(self, sql):
+        if self.driver_needs_utf8 and isinstance(sql, unicode):
+            # FreeTDS (and other ODBC drivers?) doesn't support Unicode
+            # yet, so we need to encode the SQL clause itself in utf-8
+            sql = sql.encode('utf-8')
         # pyodbc uses '?' instead of '%s' as parameter placeholder.
         if "%s" in sql:
             sql = sql.replace('%s', '?')
@@ -203,8 +209,12 @@ class CursorWrapper(object):
         return self.cursor.executemany(sql, params_list)
 
     def format_results(self, rows):
+        """
+        Decode data coming from the database if needed and convert rows to
+        tuples (pyodbc Rows are not sliceable).
+        """
         if not self.driver_needs_utf8:
-            return rows
+            return tuple(rows)
         fr = []
         for row in rows:
             if isinstance(row, str):
@@ -217,14 +227,14 @@ class CursorWrapper(object):
         row = self.cursor.fetchone()
         if row is not None:
             # Convert row to tuple (pyodbc Rows are not sliceable).
-            return tuple(self.format_results(row))
+            return self.format_results(row)
         return row
 
     def fetchmany(self, chunk):
-        return [tuple(self.format_results(row)) for row in self.cursor.fetchmany(chunk)]
+        return [self.format_results(row) for row in self.cursor.fetchmany(chunk)]
 
     def fetchall(self):
-        return [tuple(self.format_results(row)) for row in self.cursor.fetchall()]
+        return [self.format_results(row) for row in self.cursor.fetchall()]
 
     def __getattr__(self, attr):
         if attr in self.__dict__:

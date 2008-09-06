@@ -39,14 +39,12 @@ class DatabaseCreation(BaseDatabaseCreation):
         'IPAddressField':    'nvarchar(15)',
         'NullBooleanField':  'bit',
         'OneToOneField':     'int',
-        'PhoneNumberField':  'nvarchar(20)',
         #'PositiveIntegerField': 'integer CONSTRAINT [CK_int_pos_%(column)s] CHECK ([%(column)s] >= 0)',
         #'PositiveSmallIntegerField': 'smallint CONSTRAINT [CK_smallint_pos_%(column)s] CHECK ([%(column)s] >= 0)',
         'SlugField':         'nvarchar(%(max_length)s)',
         'SmallIntegerField': 'smallint',
         'TextField':         'nvarchar(max)',
         'TimeField':         'datetime',
-        'USStateField':      'nchar(2)',
     #}
     })
 
