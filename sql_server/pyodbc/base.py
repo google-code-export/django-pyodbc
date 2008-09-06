@@ -142,7 +142,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
                     self.driver_needs_utf8 = False
 
                 # http://msdn.microsoft.com/en-us/library/ms131686.aspx
-                if self.sqlserver_version >= 2005 and drv_name == 'SQLNCLI.DLL' and self.MARS_Connection:
+                if self.ops.sql_server_ver >= 2005 and drv_name == 'SQLNCLI.DLL' and self.MARS_Connection:
                     # How to to activate it: Add 'MARS_Connection': True
                     # to the DATABASE_OPTIONS disctionary setting
                     self.features.can_use_chunked_reads = True
@@ -158,8 +158,8 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
 class CursorWrapper(object):
     """
-    A wrapper around cursor that takes in account some
-    particularities of the pyodbc DB-API 2.0 implementation.
+    A wrapper around the pyodbc's cursor that takes in account some pyodbc
+    DB-API 2.0 implementation and common ODBC driver particularities.
     """
     def __init__(self, cursor, driver_needs_utf8):
         self.cursor = cursor
@@ -217,7 +217,7 @@ class CursorWrapper(object):
 
     def format_results(self, rows):
         """
-        Decode data coming from the database if neede and convert rows to tuples
+        Decode data coming from the database if needed and convert rows to tuples
         (pyodbc Rows are not sliceable).
         """
         if not self.driver_needs_utf8:
