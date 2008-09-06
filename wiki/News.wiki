@@ -1,5 +1,9 @@
 django-pyodbc development news.
 
+== SVN revision 79 ==
+
+Backend-specific setting `DATABASE_COLLATE` has been renamed to `DATABASE_COLLATION` to be have a more correct spelling and to be consistent with Django's [http://docs.djangoproject.com/en/dev/ref/settings/#test-database-collation `TEST_DATABASE_COLLATION`] setting.
+
 == SVN revision 66 ==
 
 The backend module name has been changed in a backwards incompatible way, you will need to change your `DATABASE_ENGINE` setting from `'mssql'` to `'sql_server.pyodbc'`.
