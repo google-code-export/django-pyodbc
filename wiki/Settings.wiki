@@ -1,5 +1,3 @@
-#django-pyodbc settings
-
 = Settings =
 
 == Standard Django settings ==
