@@ -1,6 +1,6 @@
-=================
-django-sql-server
-=================
+=============
+django-pyodbc
+=============
 
 A Django_ MS SQL Server external DB backend that uses ODBC by employing
 the pyodbc_ library. It supports SQL Server 2000 and 2005.
@@ -11,8 +11,8 @@ the pyodbc_ library. It supports SQL Server 2000 and 2005.
 Features
 ========
 
-* Supports LIMIT+OFFSET and offset w/o LIMIT emulation both under SS2000 and
-  SS2005.
+* Supports LIMIT+OFFSET and offset w/o LIMIT emulation under SS2005.
+* Supports LIMIT+OFFSET under SS2000.
 * Transparently supports Django's TextField both under SS2000 and SS2005.
 * Passes most of the tests of the Django test suite.
 * Compatible with SQL Server and SQL Server Native Client from Microsoft
@@ -21,7 +21,7 @@ Features
 Dependencies
 ============
 
-* Django from SVN, revision 8328 or newer (1.0 beta1 is r8362.)
+* Django from SVN, revision 8328 or newer (1.0 is r8961.)
 * pyodbc 2.0.58 or newer
 
 Installation
@@ -32,17 +32,17 @@ Installation
  2. Add the directory where you have copied the project files to your Python
     path. So, for example, if you have the following directory structure::
 
-        /home/user/src/django-sql-server
+        /home/user/src/django-pyodbc
             |
             +- sql_server
                   |
                   +- pyodbc
 
-    you should add ``/home/user/src/django-sql-server`` to you Python module search
+    you should add ``/home/user/src/django-pyodbc`` to you Python module search
     path. One way to do this is setting the ``PYTHONPATH`` environment
     variable::
 
-       $ export PYTHONPATH=/home/user/src/django-sql-server
+       $ export PYTHONPATH=/home/user/src/django-pyodbc
 
  3. Now you can point the ``DATABASE_ENGINE`` setting in the settings file used
     by your Django application or project to the ``'sql_server.pyodbc'``
@@ -53,7 +53,7 @@ Installation
 Configuration
 =============
 
-The following settting control the behavior of the backend:
+The following settings control the behavior of the backend:
 
 Standard Django settings
 ------------------------
@@ -118,4 +118,4 @@ Credits
 * Ramiro Morales `<http://djangopeople.net/ramiro/>`_
 * Filip Wasilewski (http://code.djangoproject.com/ticket/5246)
 * Wei guangjing `<http://djangopeople.net/vcc/>`_
-* mamcx(http://code.djangoproject.com/ticket/5062)
+* mamcx (http://code.djangoproject.com/ticket/5062)
