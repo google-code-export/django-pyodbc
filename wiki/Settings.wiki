@@ -19,11 +19,11 @@
     String. Database user password.
 
 `DATABASE_OPTIONS`
-    Dictionary. There are current two backend-specific available keys:
+    Dictionary. Currently, two backend-specific keys are available :
 
     `autocommit`
         Boolean. Indicates if pyodbc should direct the the ODBC driver to
-        activate the autocommit feature. Default value is `False`.
+        activate the autocommit feature. By default autocommit is turned off.
 
     `MARS_Connection`
         Boolean. Only relevant when running on Windows and with SQL Server 2005 
@@ -47,4 +47,5 @@
 
 `DATABASE_COLLATION`
     String. Name of the collation to use when performing text field lookups
-    against the database. Default value is `"Latin1_General_CI_AS"`.
+    against the database. Default value is `"Latin1_General_CI_AS"`. For chinese
+    language you can set it to ``"Chinese_PRC_CI_AS"``.
