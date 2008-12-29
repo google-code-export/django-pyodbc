@@ -51,24 +51,19 @@ def query_class(QueryClass):
     class PyOdbcSSQuery(QueryClass):
         def __init__(self, *args, **kwargs):
             super(PyOdbcSSQuery, self).__init__(*args, **kwargs)
-            # We can override the basic "Query" behavior, but not
-            # derived behavior, unless we do more work.
-            #
-            # One of the goals here is to be able to override some "InsertQuery"
-            # behavior, so we check the most-derived type name and wrap the
-            # "as_sql" method if it is "InsertQuery".
-            #
-            # This seems fragile, but less so than relying on patches against
-            # Django's guts.
-            if self.__class__.__name__ == "InsertQuery":
-                self._parent_as_sql = self.as_sql
+
+            # If we are an insert query, monkeypatch the "as_sql" method
+            from django.db.models.sql.subqueries import InsertQuery
+            if isinstance(self, InsertQuery):
+                self._orig_as_sql = self.as_sql
                 self.as_sql = self._insert_as_sql
 
         def _insert_as_sql(self, *args, **kwargs):
+            """Helper method for monkeypatching Django InsertQuery's as_sql."""
             meta = self.get_meta()
             quoted_table = self.connection.ops.quote_name(meta.db_table)
             # Get (sql, params) from original InsertQuery.as_sql
-            sql, params = self._parent_as_sql(*args, **kwargs)
+            sql, params = self._orig_as_sql(*args, **kwargs)
             if meta.pk.attname in self.columns and meta.pk.__class__.__name__ == "AutoField":
                 if len(self.columns) == 1 and not params:
                     sql = "INSERT INTO %s DEFAULT VALUES" % quoted_table
@@ -213,6 +208,11 @@ def query_class(QueryClass):
             if self.group_by:
                 grouping = self.get_grouping()
                 result.append('GROUP BY %s' % ', '.join(grouping))
+
+            if self.having:
+                having, h_params = self.get_having()
+                result.append('HAVING %s' % ','.join(having))
+                params.extend(h_params)
 
             params.extend(self.extra_params)
             return ' '.join(result), tuple(params)
