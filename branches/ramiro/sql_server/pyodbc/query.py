@@ -107,14 +107,22 @@ def query_class(QueryClass):
             return values
 
         def _modify_sql(self, strategy, ordering, out_cols):
+            """
+            Helper method, called from _as_sql()
+
+            Sets the value of the self._ord and self.def_rev_ord attributes.
+            Can modify the values of the out_cols list argument and the
+            self.ordering_aliases attribute.
+            """
             self.def_rev_ord = False
             self._ord = []
             cnt = 0
+            extra_select_aliases = [k.strip('[]') for k in self.extra_select.keys()]
             for ord_spec_item in ordering:
                 if ord_spec_item.endswith(' ASC') or ord_spec_item.endswith(' DESC'):
                     parts = ord_spec_item.split()
                     col, odir = ' '.join(parts[:-1]), parts[-1]
-                    if col not in self.ordering_aliases:
+                    if col not in self.ordering_aliases and col.strip('[]') not in extra_select_aliases:
                         if col.isdigit():
                             cnt += 1
                             n = int(col)-1
@@ -142,10 +150,12 @@ def query_class(QueryClass):
                                 self.ordering_aliases.append('%s AS [%s]' % (col, alias))
                         else:
                             self._ord.append((col, odir))
+                    else:
+                        self._ord.append((col, odir))
 
         def _as_sql(self, strategy):
             """
-            "Helper method, called from as_sql()"
+            Helper method, called from as_sql()
             Similar to django/db/models/sql/query.py:Query.as_sql() but without
             the ordering and limits code.
 
