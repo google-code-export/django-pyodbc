@@ -51,6 +51,8 @@ def query_class(QueryClass):
     class PyOdbcSSQuery(QueryClass):
         def __init__(self, *args, **kwargs):
             super(PyOdbcSSQuery, self).__init__(*args, **kwargs)
+            self.def_rev_ord = False
+            self._ord = []
 
             # If we are an insert query, monkeypatch the "as_sql" method
             from django.db.models.sql.subqueries import InsertQuery
@@ -117,7 +119,7 @@ def query_class(QueryClass):
                 values.append(value)
             return values
 
-        def _modify_sql(self, strategy, ordering, out_cols):
+        def _modify_ordering(self, strategy, ordering, out_cols):
             """
             Helper method, called from _as_sql()
 
@@ -183,7 +185,7 @@ def query_class(QueryClass):
                     ordering = ['%s.%s ASC' % (qn(meta.db_table), qn(meta.pk.db_column or meta.pk.column))]
 
             if strategy in (USE_TOP_HMARK, USE_ROW_NUMBER):
-                self._modify_sql(strategy, ordering, out_cols)
+                self._modify_ordering(strategy, ordering, out_cols)
 
             if strategy == USE_ROW_NUMBER:
                 ord = ', '.join(['%s %s' % pair for pair in self._ord])
