@@ -195,7 +195,9 @@ def query_class(QueryClass):
             # get_from_clause() for details.
             from_, f_params = self.get_from_clause()
 
-            where, w_params = self.where.as_sql(qn=self.quote_name_unless_alias)
+            qn = self.quote_name_unless_alias
+            where, w_params = self.where.as_sql(qn=qn)
+            having, h_params = self.having.as_sql(qn=qn)
             params = []
             for val in self.extra_select.itervalues():
                 params.extend(val[1])
@@ -232,9 +234,8 @@ def query_class(QueryClass):
                 grouping = self.get_grouping()
                 result.append('GROUP BY %s' % ', '.join(grouping))
 
-            if self.having:
-                having, h_params = self.get_having()
-                result.append('HAVING %s' % ','.join(having))
+            if having:
+                result.append('HAVING %s' % having)
                 params.extend(h_params)
 
             params.extend(self.extra_params)
