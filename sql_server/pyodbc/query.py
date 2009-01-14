@@ -212,7 +212,7 @@ def query_class(QueryClass):
                 meta = self.model._meta
                 result.append('TOP %s %s' % (self.low_mark, self.quote_name_unless_alias(meta.pk.db_column or meta.pk.column)))
             else:
-                if strategy == USE_TOP_HMARK:
+                if strategy == USE_TOP_HMARK and self.high_mark is not None:
                     result.append('TOP %s' % self.high_mark)
                 result.append(', '.join(out_cols + self.ordering_aliases))
 
@@ -301,7 +301,7 @@ def query_class(QueryClass):
                 result = ['SELECT * FROM (%s) AS X' % sql]
 
                 # Place WHERE condition on `rn` for the desired range.
-                if not self.high_mark:
+                if self.high_mark is None:
                     self.high_mark = 9223372036854775807
                 result.append('WHERE X.rn BETWEEN %d AND %d' % (self.low_mark+1, self.high_mark))
 
