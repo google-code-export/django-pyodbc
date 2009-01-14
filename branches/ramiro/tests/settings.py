@@ -75,9 +75,13 @@ INSTALLED_APPS = (
     #'django.contrib.contenttypes',
     #'django.contrib.sessions',
     #'django.contrib.sites',
+
+    'sql_server.extra',
+
     'issue019',
     'issue028',
     'issue031',
     'basic',
     'order_with_respect_to',
+    'fixtures',
 )
