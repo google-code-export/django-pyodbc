@@ -241,7 +241,6 @@ class Command(BaseCommand):
         for t in self.tables:
             cursor.execute('ALTER TABLE [%s] WITH CHECK CHECK CONSTRAINT ALL' % t)
         self.tables.clear()
-        #print 'final: %s' % self.tables
         self.in_disabled_constraints = False
 
     def handle_ref_checks(self, cursor, obj):
@@ -267,12 +266,6 @@ class Command(BaseCommand):
                 for f in mobj._meta.local_many_to_many:
                     cursor.execute('ALTER TABLE [%s] NOCHECK CONSTRAINT ALL' % f.m2m_db_table())
                     self.tables.add(f.m2m_db_table())
-                #print 20 * '='
-                #for f in mobj._meta.local_many_to_many:
-                #    print '%s: %s %s' % (mobj.__class__, f.__class__, f.name)
-                #print 20 * '-'
-                #for f in mobj._meta.many_to_many:
-                #    print '%s: %s %s' % (mobj.__class__, f.__class__, f.name)
 
                 if has_outgoing_fks:
                     cursor.execute('ALTER TABLE [%s] NOCHECK CONSTRAINT ALL' % mobj._meta.db_table)
