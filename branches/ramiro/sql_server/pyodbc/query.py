@@ -87,36 +87,43 @@ def query_class(QueryClass):
                 data = self.__dict__
             return (unpickle_query_class, (QueryClass,), data)
 
-        def resolve_columns(self, row, fields=()):
+        def convert_values(self, value, field):
             """
-            Cater for the fact that SQL Server has no separate Date and Time
-            data types.
+            Coerce the value returned by the database backend into a consistent
+            type that is compatible with the field type.
+
+            In our case, cater for the fact that SQL Server < 2008 has no
+            separate Date and Time data types.
+            TODO: See how we'll handle this for MS SS 2008
             """
             from django.db.models.fields import DateField, DateTimeField, \
                 TimeField
             from datetime import datetime
+            if value is None:
+                return None
+            # DateTimeField subclasses DateField so must be checked first
+            if isinstance(field, DateTimeField):
+                pass # do nothing
+            elif isinstance(field, DateField):
+                value = value.date() # extract date
+            elif isinstance(field, TimeField):
+                value = value.time() # extract time
+            # Some cases (for example when select_related() is used)
+            # aren't caught by the DateField case above and date
+            # fields come from the DB as datetime instances.
+            # Implement a workaround stealing the idea from the Oracle
+            # backend, the same warning applies (i.e. if a query
+            # results in valid date+time values with the time part set
+            # to midnight, this workaround can surprise the user by
+            # converting them to the Python date type).
+            elif isinstance(value, datetime) and value.hour == value.minute == value.second == value.microsecond == 0:
+                value = value.date()
+            return value
+
+        def resolve_columns(self, row, fields=()):
             values = []
             for value, field in map(None, row, fields):
-                if value is not None:
-                    if isinstance(field, DateTimeField):
-                        # DateTimeField subclasses DateField so must be checked
-                        # first.
-                        pass # do nothing
-                    elif isinstance(field, DateField):
-                        value = value.date() # extract date
-                    elif isinstance(field, TimeField):
-                        value = value.time() # extract time
-                    # Some cases (for example when select_related() is used)
-                    # aren't caught by the DateField case above and date
-                    # fields come from the DB as datetime instances.
-                    # Implement a workaround stealing the idea from the Oracle
-                    # backend, the same warning applies (i.e. if a query
-                    # results in valid date+time values with the time part set
-                    # to midnight, this workaround can surprise the user by
-                    # converting them to the Python date type).
-                    elif isinstance(value, datetime) and value.hour == value.minute == value.second == value.microsecond == 0:
-                        value = value.date()
-                values.append(value)
+                values.append(self.convert_values(value, field))
             return values
 
         def _modify_ordering(self, strategy, ordering, out_cols):
