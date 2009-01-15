@@ -96,26 +96,23 @@ def query_class(QueryClass):
             separate Date and Time data types.
             TODO: See how we'll handle this for MS SS 2008
             """
-            from django.db.models.fields import DateField, DateTimeField, \
-                TimeField
             from datetime import datetime
             if value is None:
                 return None
-            # DateTimeField subclasses DateField so must be checked first
-            if isinstance(field, DateTimeField):
-                pass # do nothing
-            elif isinstance(field, DateField):
+            if field and field.get_internal_type() == 'DateTimeField':
+                return value
+            elif field and field.get_internal_type() == 'DateField':
                 value = value.date() # extract date
-            elif isinstance(field, TimeField):
+            elif field and field.get_internal_type() == 'TimeField':
                 value = value.time() # extract time
-            # Some cases (for example when select_related() is used)
-            # aren't caught by the DateField case above and date
-            # fields come from the DB as datetime instances.
+            # Some cases (for example when select_related() is used) aren't
+            # caught by the DateField case above and date fields arrive from
+            # the DB as datetime instances.
             # Implement a workaround stealing the idea from the Oracle
-            # backend, the same warning applies (i.e. if a query
-            # results in valid date+time values with the time part set
-            # to midnight, this workaround can surprise the user by
-            # converting them to the Python date type).
+            # backend. It's not perfect so the same warning applies (i.e. if a
+            # query results in valid date+time values with the time part set
+            # to midnight, this workaround can surprise us by converting them
+            # to the datetime.date Python type).
             elif isinstance(value, datetime) and value.hour == value.minute == value.second == value.microsecond == 0:
                 value = value.date()
             return value
