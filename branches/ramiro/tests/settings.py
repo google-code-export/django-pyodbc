@@ -76,6 +76,10 @@ INSTALLED_APPS = (
     #'django.contrib.sessions',
     #'django.contrib.sites',
 
+    # Include this app to get Django 'loaddata' management command
+    # automatically overriden by our 'ss_loaddata' one. This allows
+    # the loading of fixtures with forward references and is tested
+    # by the 'fixtures' test below.
     'sql_server.extra',
 
     'issue019',
@@ -84,4 +88,6 @@ INSTALLED_APPS = (
     'basic',
     'order_with_respect_to',
     'fixtures',
+    'aggregation',
+    'aggregation_regress',
 )
