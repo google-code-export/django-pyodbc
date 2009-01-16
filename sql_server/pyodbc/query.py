@@ -3,6 +3,9 @@ Custom Query class for MS SQL Server.
 Derives from: django.db.models.sql.query.Query
 """
 
+from django.db.backends import util
+from datetime import datetime
+
 REV_ODIR = {
     'ASC': 'DESC',
     'DESC': 'ASC'
@@ -99,7 +102,6 @@ def query_class(QueryClass):
             separate Date and Time data types.
             TODO: See how we'll handle this for MS SS 2008
             """
-            from datetime import datetime
             if value is None:
                 return None
             if field and field.get_internal_type() == 'DateTimeField':
@@ -118,6 +120,9 @@ def query_class(QueryClass):
             # to the datetime.date Python type).
             elif isinstance(value, datetime) and value.hour == value.minute == value.second == value.microsecond == 0:
                 value = value.date()
+            # Force floats to the correct type
+            elif value is not None and field and field.get_internal_type() == 'FloatField':
+                value = float(value)
             return value
 
         def resolve_columns(self, row, fields=()):
