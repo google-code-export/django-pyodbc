@@ -49,6 +49,9 @@ def query_class(QueryClass):
         pass
 
     class PyOdbcSSQuery(QueryClass):
+        from sql_server.pyodbc import aggregates
+        aggregates_module = aggregates
+
         def __init__(self, *args, **kwargs):
             super(PyOdbcSSQuery, self).__init__(*args, **kwargs)
             self.def_rev_ord = False
