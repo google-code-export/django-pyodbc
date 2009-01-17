@@ -166,12 +166,14 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
 class CursorWrapper(object):
     """
-    A wrapper around the pyodbc's cursor that takes in account some pyodbc
-    DB-API 2.0 implementation and common ODBC driver particularities.
+    A wrapper around the pyodbc's cursor that takes in account a) some pyodbc
+    DB-API 2.0 implementation and b) some common ODBC driver particularities.
     """
     def __init__(self, cursor, driver_needs_utf8):
         self.cursor = cursor
         self.driver_needs_utf8 = driver_needs_utf8
+        self.last_sql = ''
+        self.last_params = ()
 
     def format_sql(self, sql):
         if self.driver_needs_utf8 and isinstance(sql, unicode):
@@ -208,8 +210,10 @@ class CursorWrapper(object):
         return tuple(fp)
 
     def execute(self, sql, params=()):
+        self.last_sql = sql
         sql = self.format_sql(sql)
         params = self.format_params(params)
+        self.last_params = params
         return self.cursor.execute(sql, params)
 
     def executemany(self, sql, params_list):

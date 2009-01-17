@@ -121,6 +121,18 @@ class DatabaseOperations(BaseDatabaseOperations):
         """
         return "RAND()"
 
+    def last_executed_query(self, cursor, sql, params):
+        """
+        Returns a string of the query last executed by the given cursor, with
+        placeholders replaced with actual values.
+
+        `sql` is the raw query containing placeholders, and `params` is the
+        sequence of parameters. These are used by default, but this method
+        exists for database backends to provide a better implementation
+        according to their own quoting schemes.
+        """
+        return super(DatabaseOperations, self).last_executed_query(cursor, cursor.last_sql, cursor.last_params)
+
     #def savepoint_create_sql(self, sid):
     #    """
     #    Returns the SQL for starting a new savepoint. Only required if the
