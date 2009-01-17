@@ -165,14 +165,12 @@ def query_class(QueryClass):
                                 self._ord.append((col, odir))
                         elif strategy == USE_TOP_HMARK:
                             # Special case: '_order' proxy
-                            if col.split('.')[-1] == '[_order]':
-                                if odir == 'DESC':
-                                    self.def_rev_ord = True
-                            else:
-                                cnt += 1
-                                alias = 'OrdAlias%d' % cnt
-                                self._ord.append((alias, odir))
-                                self.ordering_aliases.append('%s AS [%s]' % (col, alias))
+                            if col.split('.')[-1] == '[_order]' and odir == 'DESC':
+                                self.def_rev_ord = True
+                            cnt += 1
+                            alias = 'OrdAlias%d' % cnt
+                            self._ord.append((alias, odir))
+                            self.ordering_aliases.append('%s AS [%s]' % (col, alias))
                         else:
                             self._ord.append((col, odir))
                     else:
