@@ -3,7 +3,6 @@ Custom Query class for MS SQL Server.
 Derives from: django.db.models.sql.query.Query
 """
 
-from django.db.backends import util
 from datetime import datetime
 
 REV_ODIR = {
