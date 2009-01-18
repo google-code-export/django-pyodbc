@@ -11,8 +11,10 @@ REV_ODIR = {
 }
 
 SQL_SERVER_8_LIMIT_QUERY = \
-"""SELECT * FROM (
-  SELECT TOP %(limit)s * FROM (
+"""SELECT *
+FROM (
+  SELECT TOP %(limit)s *
+  FROM (
     %(orig_sql)s
     ORDER BY %(ord)s
   ) AS %(table)s
@@ -56,7 +58,7 @@ def query_class(QueryClass):
 
         def __init__(self, *args, **kwargs):
             super(PyOdbcSSQuery, self).__init__(*args, **kwargs)
-            self.def_rev_ord = False
+            self.default_reverse_ordering = False
             self._ord = []
 
             # If we are an insert query, monkeypatch the "as_sql" method
@@ -134,11 +136,12 @@ def query_class(QueryClass):
             """
             Helper method, called from _as_sql()
 
-            Sets the value of the self._ord and self.def_rev_ord attributes.
+            Sets the value of the self._ord and self.default_reverse_ordering
+            attributes.
             Can modify the values of the out_cols list argument and the
             self.ordering_aliases attribute.
             """
-            self.def_rev_ord = False
+            self.default_reverse_ordering = False
             self._ord = []
             cnt = 0
             extra_select_aliases = [k.strip('[]') for k in self.extra_select.keys()]
@@ -163,9 +166,10 @@ def query_class(QueryClass):
                             else:
                                 self._ord.append((col, odir))
                         elif strategy == USE_TOP_HMARK:
-                            # Special case: '_order' proxy
+                            # Special case: '_order' column created by Django
+                            # when Meta.order_with_respect_to is used
                             if col.split('.')[-1] == '[_order]' and odir == 'DESC':
-                                self.def_rev_ord = True
+                                self.default_reverse_ordering = True
                             cnt += 1
                             alias = 'OrdAlias%d' % cnt
                             self._ord.append((alias, odir))
@@ -276,7 +280,7 @@ def query_class(QueryClass):
             #meta = self.get_meta()
             meta = self.model._meta
             qn = self.quote_name_unless_alias
-            fback_ord = '%s.%s' % (qn(meta.db_table), qn(meta.pk.db_column or meta.pk.column))
+            fallback_ordering = '%s.%s' % (qn(meta.db_table), qn(meta.pk.db_column or meta.pk.column))
 
             # SQL Server 2000, offset+limit case
             if self.connection.ops.sql_server_ver < 2005 and self.high_mark is not None:
@@ -285,12 +289,12 @@ def query_class(QueryClass):
                     ord = ', '.join(['%s %s' % pair for pair in self._ord])
                     rev_ord = ', '.join(['%s %s' % (col, REV_ODIR[odir]) for col, odir in self._ord])
                 else:
-                    if not self.def_rev_ord:
-                        ord = '%s ASC' % fback_ord
-                        rev_ord = '%s DESC' % fback_ord
+                    if not self.default_reverse_ordering:
+                        ord = '%s ASC' % fallback_ordering
+                        rev_ord = '%s DESC' % fallback_ordering
                     else:
-                        ord = '%s DESC' % fback_ord
-                        rev_ord = '%s ASC' % fback_ord
+                        ord = '%s DESC' % fallback_ordering
+                        rev_ord = '%s ASC' % fallback_ordering
                 sql = SQL_SERVER_8_LIMIT_QUERY % {
                     'limit': self.high_mark - self.low_mark,
                     'orig_sql': orig_sql,
@@ -325,7 +329,7 @@ def query_class(QueryClass):
                 ord = ', '.join(ordering)
             else:
                 # We need to define an ordering clause since none was provided
-                ord = fback_ord
+                ord = fallback_ordering
             orig_sql, params = self._as_sql(USE_TOP_LMARK)
             sql = SQL_SERVER_8_NO_LIMIT_QUERY % {
                 'orig_sql': orig_sql,
