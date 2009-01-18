@@ -90,4 +90,5 @@ INSTALLED_APPS = (
     'fixtures',
     'aggregation',
     'aggregation_regress',
+    'serializers_regress',
 )
