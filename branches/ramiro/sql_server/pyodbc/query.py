@@ -101,7 +101,7 @@ def query_class(QueryClass):
 
             In our case, cater for the fact that SQL Server < 2008 has no
             separate Date and Time data types.
-            TODO: See how we'll handle this for MS SS 2008
+            TODO: See how we'll handle this for SQL Server >= 2008
             """
             if value is None:
                 return None
@@ -132,7 +132,7 @@ def query_class(QueryClass):
                 values.append(self.convert_values(value, field))
             return values
 
-        def _modify_ordering(self, strategy, ordering, out_cols):
+        def modify_query(self, strategy, ordering, out_cols):
             """
             Helper method, called from _as_sql()
 
@@ -179,6 +179,15 @@ def query_class(QueryClass):
                     else:
                         self._ord.append((col, odir))
 
+            if strategy == USE_TOP_HMARK and not self._ord:
+                # XXX:
+                #meta = self.get_meta()
+                meta = self.model._meta
+                qn = self.quote_name_unless_alias
+                pk_col = '%s.%s' % (qn(meta.db_table), qn(meta.pk.db_column or meta.pk.column))
+                if pk_col not in out_cols:
+                    out_cols.append(pk_col)
+
         def _as_sql(self, strategy):
             """
             Helper method, called from as_sql()
@@ -198,7 +207,7 @@ def query_class(QueryClass):
                     ordering = ['%s.%s ASC' % (qn(meta.db_table), qn(meta.pk.db_column or meta.pk.column))]
 
             if strategy in (USE_TOP_HMARK, USE_ROW_NUMBER):
-                self._modify_ordering(strategy, ordering, out_cols)
+                self.modify_query(strategy, ordering, out_cols)
 
             if strategy == USE_ROW_NUMBER:
                 ord = ', '.join(['%s %s' % pair for pair in self._ord])
