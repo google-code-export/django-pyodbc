@@ -38,6 +38,7 @@ class DatabaseFeatures(BaseDatabaseFeatures):
 
 
 class DatabaseWrapper(BaseDatabaseWrapper):
+    drv_name = None
     driver_needs_utf8 = None
     MARS_Connection = False
 
@@ -145,20 +146,20 @@ class DatabaseWrapper(BaseDatabaseWrapper):
 
             if self.driver_needs_utf8 is None:
                 self.driver_needs_utf8 = True
-                drv_name = self.connection.getinfo(Database.SQL_DRIVER_NAME).upper()
-                if drv_name in ('SQLSRV32.DLL','SQLNCLI.DLL'):
+                self.drv_name = self.connection.getinfo(Database.SQL_DRIVER_NAME).upper()
+                if self.drv_name in ('SQLSRV32.DLL', 'SQLNCLI.DLL'):
                     self.driver_needs_utf8 = False
 
                 # http://msdn.microsoft.com/en-us/library/ms131686.aspx
-                if self.ops.sql_server_ver >= 2005 and drv_name == 'SQLNCLI.DLL' and self.MARS_Connection:
+                if self.ops.sql_server_ver >= 2005 and self.drv_name == 'SQLNCLI.DLL' and self.MARS_Connection:
                     # How to to activate it: Add 'MARS_Connection': True
-                    # to the DATABASE_OPTIONS disctionary setting
+                    # to the DATABASE_OPTIONS dictionary setting
                     self.features.can_use_chunked_reads = True
 
-            # FreeTDS can't execute some sql like CREATE DATABASE etc. in
-            # Multi-statement, so we need to commit the above SQL sentences to
-            # avoid this
-            if not self.connection.autocommit:
+            # FreeTDS can't execute some sql queries like CREATE DATABASE etc.
+            # in multi-statement, so we need to commit the above SQL sentence(s)
+            # to avoid this
+            if self.drv_name.startswith('LIBTDSODBC') and not self.connection.autocommit:
                 self.connection.commit()
 
         return CursorWrapper(cursor, self.driver_needs_utf8)
