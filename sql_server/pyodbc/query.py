@@ -53,9 +53,6 @@ def query_class(QueryClass):
         pass
 
     class PyOdbcSSQuery(QueryClass):
-        from sql_server.pyodbc import aggregates
-        aggregates_module = aggregates
-
         def __init__(self, *args, **kwargs):
             super(PyOdbcSSQuery, self).__init__(*args, **kwargs)
             self.default_reverse_ordering = False
@@ -217,9 +214,7 @@ def query_class(QueryClass):
             # get_from_clause() for details.
             from_, f_params = self.get_from_clause()
 
-            qn = self.quote_name_unless_alias
-            where, w_params = self.where.as_sql(qn=qn)
-            having, h_params = self.having.as_sql(qn=qn)
+            where, w_params = self.where.as_sql(qn=self.quote_name_unless_alias)
             params = []
             for val in self.extra_select.itervalues():
                 params.extend(val[1])
@@ -256,8 +251,9 @@ def query_class(QueryClass):
                 grouping = self.get_grouping()
                 result.append('GROUP BY %s' % ', '.join(grouping))
 
-            if having:
-                result.append('HAVING %s' % having)
+            if self.having:
+                having, h_params = self.get_having()
+                result.append('HAVING %s' % ','.join(having))
                 params.extend(h_params)
 
             params.extend(self.extra_params)
