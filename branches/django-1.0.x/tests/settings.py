@@ -88,8 +88,6 @@ INSTALLED_APPS = (
     'basic',
     'order_with_respect_to',
     'fixtures',
-    'aggregation',
-    'aggregation_regress',
     'serializers_regress',
     'update',
     'queries',
