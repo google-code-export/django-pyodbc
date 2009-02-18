@@ -1,5 +1,16 @@
 django-pyodbc development news.
 
+== SVN revision 138 ==
+
+Starting with this revision, a new `django-1.0.x` SVN branch is available where
+a version of django-pyodbc compatible with the 1.0.x Django branch is being maintained.
+This means it's kept stable without being disrupted by the potentially unstable
+or buggy changes made on trunk to accompany Django own trunk development.
+
+== SVN revision 135 ==
+
+In this revision, code that had been maintained and developed in a testing branch was merged into trunk fixing several bugs in SQL query building without, as far as we know, introducing new bugs. there is still work to be done in order to reach the full Django ORM functionality both with SQL Server 2000 and SQL Server 2005.
+
 == SVN revision 79 ==
 
 Backend-specific setting `DATABASE_COLLATE` has been renamed to `DATABASE_COLLATION` to be have a more correct spelling and to be consistent with Django's [http://docs.djangoproject.com/en/dev/ref/settings/#test-database-collation `TEST_DATABASE_COLLATION`] setting.
