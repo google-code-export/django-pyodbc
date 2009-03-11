@@ -19,7 +19,7 @@
     String. Database user password.
 
 `DATABASE_OPTIONS`
-    Dictionary. Currently, two backend-specific keys are available :
+    Dictionary. Currently, the following backend-specific keys are available:
 
     `autocommit`
         Boolean. Indicates if pyodbc should direct the the ODBC driver to
@@ -44,6 +44,12 @@
         But if this option is present and it's value is True, this special
         behavior is turned off.
         See http://freetds.org/userguide/dsnless.htm for more information.
+
+    `datefirst`
+        Numeric. Directs the SQL Server to set which day is considered the first
+        day of the week for the Django ORM QuerySet 'week_day' lookup. By default
+        django-pyodbc set this to 7 (Sunday) to be compatible with the Django
+        convention.
 
 === `django-pyodbc`-specific settings ===
 
