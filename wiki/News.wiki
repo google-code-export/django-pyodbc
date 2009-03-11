@@ -1,5 +1,20 @@
 django-pyodbc development news.
 
+== SVN revision 157 ==
+
+This is the minimal development revision of django-pyodbc trunk you need to use if you are
+following Django trunk development and have revision 10026 or newer. An internal  refactoring in handling of Django settings in database connections and cursors has been implemented and this made necessary modifications implemented in r155 and r157.
+
+We took the opportunity to migrate the DATABASE_ODBC_DRIVER, DATABASE_ODBC_DSN and
+DATABASE_ODBC_EXTRA_PARAMS settings to the DATABASE_OPTIONS dictionary setting. This
+will allow django-pyodbc to be compatible with current and future work on multi-database
+support for Django.
+
+This is a backward-incompatible change for setups that were using at least one of these 
+three settings.
+
+The equivalent DATABASE_OPTIONS keys are 'driver, 'dsn' and 'extra_params' respectively.
+
 == SVN revision 138 ==
 
 Starting with this revision, a new `django-1.0.x` SVN branch is available where
