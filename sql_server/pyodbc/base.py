@@ -75,8 +75,8 @@ class DatabaseWrapper(BaseDatabaseWrapper):
         # TODO: freetext, full-text contains...
     }
 
-    def __init__(self, autocommit=False, **kwargs):
-        super(DatabaseWrapper, self).__init__(autocommit=autocommit, **kwargs)
+    def __init__(self, **kwargs):
+        super(DatabaseWrapper, self).__init__(**kwargs)
 
         if kwargs.get('MARS_Connection', False):
             self.MARS_Connection = True
@@ -136,7 +136,7 @@ class DatabaseWrapper(BaseDatabaseWrapper):
                 cstr_parts.append(settings.DATABASE_ODBC_EXTRA_PARAMS)
 
             connstr = ';'.join(cstr_parts)
-            self.connection = Database.connect(connstr, autocommit=self.options['autocommit'])
+            self.connection = Database.connect(connstr, autocommit=self.options.get('autocommit', False))
 
         cursor = self.connection.cursor()
         if new_conn:
