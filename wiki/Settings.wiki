@@ -48,23 +48,34 @@
     `datefirst`
         Numeric. Directs the SQL Server to set which day is considered the first
         day of the week for the Django ORM QuerySet 'week_day' lookup. By default
-        django-pyodbc set this to 7 (Sunday) to be compatible with the Django
-        convention.
+        django-pyodbc set this to 7 (Sunday, see http://msdn.microsoft.com/en-us/library/aa259210(SQL.80).aspx) to be compatible with the Django convention (see http://docs.djangoproject.com/en/dev/ref/models/querysets/#week-day).
+
+    `dsn`
+        String. A named DSN can be used instead of `DATABASE_HOST`.
+
+    `driver`
+        String. ODBC Driver to use. Default is `"SQL Server"` on Windows and
+        `"FreeTDS"` on other platforms.
+
+    `extra_params`
+        String. Additional parameters for the ODBC connection. The format is
+        `"param=value;param=value"`.
+
+    `collation`
+        String. Name of the collation to use when performing text field lookups
+        against the database. Default value is `"Latin1_General_CI_AS"`. For
+        chinese language you can set it to ``"Chinese_PRC_CI_AS"``.
 
 === `django-pyodbc`-specific settings ===
 
 `DATABASE_ODBC_DSN`
-    String. A named DSN can be used instead of `DATABASE_HOST`.
+    Deprecated, please use `DATABASE_OPTIONS['dsn']` instead.
 
 `DATABASE_ODBC_DRIVER`
-    String. ODBC Driver to use. Default is `"SQL Server"` on Windows and
-    `"FreeTDS"` on other platforms.
+    Deprecated, please use `DATABASE_OPTIONS['driver']` instead.
 
 `DATABASE_EXTRA_PARAMS`
-    String. Additional parameters for the ODBC connection. The format is
-    `"param=value;param=value"`.
+    Deprecated, please use `DATABASE_OPTIONS['extra_params']` instead.
 
 `DATABASE_COLLATION`
-    String. Name of the collation to use when performing text field lookups
-    against the database. Default value is `"Latin1_General_CI_AS"`. For chinese
-    language you can set it to ``"Chinese_PRC_CI_AS"``.
+    This setting will be deprecated soon, please use `DATABASE_OPTIONS['collation']` instead.
