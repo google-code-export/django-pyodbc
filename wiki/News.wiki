@@ -3,7 +3,7 @@ django-pyodbc development news.
 == SVN revision 157 ==
 
 This is the minimal development revision of django-pyodbc trunk you need to use if you are
-following Django trunk development and have revision 10026 or newer. An internal  refactoring in handling of Django settings in database connections and cursors has been implemented and this made necessary modifications implemented in r155 and r157.
+following Django trunk development (revision 10026 or newer). An internal refactoring in handling of Django settings by database connections and cursors has been implemented and this made necessary the modifications we implemented in r155 and r157.
 
 We took the opportunity to migrate the DATABASE_ODBC_DRIVER, DATABASE_ODBC_DSN and
 DATABASE_ODBC_EXTRA_PARAMS settings to the DATABASE_OPTIONS dictionary setting. This
@@ -25,7 +25,7 @@ or buggy changes made on trunk to accompany Django own trunk development.
 You can checkout it by using 
 
 {{{
-$ svn checkout http://django-pyodbc.googlecode.com/svn/banches/django-1.0.x
+$ svn checkout http://django-pyodbc.googlecode.com/svn/branches/django-1.0.x
 }}}
 
 == SVN revision 135 ==
@@ -34,7 +34,7 @@ In this revision, code that had been maintained and developed in a testing branc
 
 == SVN revision 79 ==
 
-Backend-specific setting `DATABASE_COLLATE` has been renamed to `DATABASE_COLLATION` to be have a more correct spelling and to be consistent with Django's [http://docs.djangoproject.com/en/dev/ref/settings/#test-database-collation `TEST_DATABASE_COLLATION`] setting.
+Backend-specific setting `DATABASE_COLLATE` has been renamed to `DATABASE_COLLATION` to have a more correct spelling and to be consistent with Django's [http://docs.djangoproject.com/en/dev/ref/settings/#test-database-collation `TEST_DATABASE_COLLATION`] setting.
 
 == SVN revision 66 ==
 
@@ -44,7 +44,7 @@ The backend module name has been changed in a backwards incompatible way, you wi
 
 Updated code to be compatible with Django as of [http://code.djangoproject.com/changeset/8426 r8426].
 
-Also, works has been started to merge fixes and changes from a development branch to trunk, to be in good shape to accompany the imminent Django 1.0 release.
+Also, work has been started to merge fixes and changes from a development branch to trunk, to be in good shape to accompany the imminent Django 1.0 release.
 
 == SVN revision 24 ==
 
